@@ -328,6 +328,32 @@ long HX711_ADC::smoothedData()
 
 }
 
+long HX711_ADC::getSmoothedData() 
+{
+	long data = 0;
+	long L = 0xFFFFFF;
+	long H = 0x00;
+	for (uint8_t r = 0; r < (samplesInUse + IGN_HIGH_SAMPLE + IGN_LOW_SAMPLE); r++) 
+	{
+		#if IGN_LOW_SAMPLE
+		if (L > dataSampleSet[r]) L = dataSampleSet[r]; // find lowest value
+		#endif
+		#if IGN_HIGH_SAMPLE
+		if (H < dataSampleSet[r]) H = dataSampleSet[r]; // find highest value
+		#endif
+		data += dataSampleSet[r];
+	}
+	#if IGN_LOW_SAMPLE 
+	data -= L; //remove lowest value
+	#endif
+	#if IGN_HIGH_SAMPLE 
+	data -= H; //remove highest value
+	#endif
+	//return data;
+	return (data >> divBit);
+
+}
+
 void HX711_ADC::conversion24bit()  //read 24 bit data, store in dataset and start the next conversion
 {
 	conversionTime = micros() - conversionStartTime;
